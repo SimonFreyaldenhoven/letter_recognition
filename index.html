@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Letter Recognition — Game</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main class="container">
+      <h1>Letter Sound Game</h1>
+      <p class="instructions">Listen to the letter and pick the button that shows the same letter. Fun words will be read too!</p>
+
+      <div class="controls">
+        <button id="playBtn" class="primary">Play Letter</button>
+        <button id="nextBtn" class="muted">Next</button>
+      </div>
+
+      <div id="choices" class="choices" aria-live="polite"></div>
+
+      <div id="message" class="message" aria-live="assertive"></div>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
