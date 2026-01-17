@@ -31,7 +31,6 @@ const lettersMap = {
 };
 
 const numbersMap = {
-  '0': ['zero candles','nothing','empty'],
   '1': ['one sun','one nose','one moon'],
   '2': ['two eyes','two hands','two feet'],
   '3': ['three bears','three little pigs','triangle sides'],
@@ -40,7 +39,18 @@ const numbersMap = {
   '6': ['six legs on an insect','six sides on a dice','half dozen'],
   '7': ['seven days in a week','seven colors of the rainbow','seven dwarfs'],
   '8': ['eight legs on a spider','eight tentacles on an octopus','octagon sides'],
-  '9': ['nine planets','nine lives of a cat','baseball innings']
+  '9': ['nine planets','nine lives of a cat','baseball innings'],
+  '10': ['ten fingers','ten toes','bowling pins'],
+  '11': ['eleven players on a soccer team','eleven pipers piping','number after ten'],
+  '12': ['twelve months in a year','dozen eggs','twelve hours on a clock'],
+  '13': ['thirteen stripes on the flag','a baker\'s dozen','unlucky number'],
+  '14': ['fourteen days in two weeks','valentines day','fourteen lines in a sonnet'],
+  '15': ['fifteen minutes','quarter hour','fifteen puzzle'],
+  '16': ['sixteen ounces in a pound','sweet sixteen','sixteen candles'],
+  '17': ['seventeen syllables in a haiku','number after sixteen','seventeen magazine'],
+  '18': ['eighteen holes of golf','eighteen wheels on a big truck','voting age'],
+  '19': ['nineteen','one less than twenty','nineteen hundred'],
+  '20': ['twenty fingers and toes','score','twenty questions']
 };
 
 // Combined map for easy lookup
