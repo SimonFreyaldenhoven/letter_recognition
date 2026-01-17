@@ -62,14 +62,26 @@ function isNumber(item) {
 
 const playBtn = document.getElementById('playBtn');
 const nextBtn = document.getElementById('nextBtn');
+const changeModeBtn = document.getElementById('changeModeBtn');
 const choices = document.getElementById('choices');
 const message = document.getElementById('message');
+const modeSelect = document.getElementById('modeSelect');
+const gameScreen = document.getElementById('gameScreen');
+const modeButtons = document.querySelectorAll('.mode-btn');
 
 let currentItem = 'A';
+let gameMode = 'mixed'; // 'letters', 'numbers', or 'mixed'
 
 function randItem(){
-  const items = Object.keys(itemsMap);
-  return items[Math.floor(Math.random()*items.length)];
+  let pool;
+  if (gameMode === 'letters') {
+    pool = Object.keys(lettersMap);
+  } else if (gameMode === 'numbers') {
+    pool = Object.keys(numbersMap);
+  } else {
+    pool = Object.keys(itemsMap);
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function createChoices(item){
@@ -247,5 +259,28 @@ nextBtn.addEventListener('click', ()=>{
   nextRound();
 });
 
-// initialize
-nextRound();
+changeModeBtn.addEventListener('click', ()=>{
+  showModeSelect();
+});
+
+// mode selection
+modeButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    gameMode = btn.dataset.mode;
+    startGame();
+  });
+});
+
+function showModeSelect(){
+  gameScreen.classList.add('hidden');
+  modeSelect.classList.remove('hidden');
+  speechSynthesis.cancel();
+}
+
+function startGame(){
+  modeSelect.classList.add('hidden');
+  gameScreen.classList.remove('hidden');
+  nextRound();
+}
+
+// no auto-start - wait for mode selection

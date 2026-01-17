@@ -9,16 +9,31 @@
   <body>
     <main class="container">
       <h1>Letter & Number Game</h1>
-      <p class="instructions">Listen to the letter or number and pick the matching button. Fun examples will be read too!</p>
 
-      <div class="controls">
-        <button id="playBtn" class="primary">Play Sound</button>
-        <button id="nextBtn" class="muted">Next</button>
+      <!-- Mode selection screen -->
+      <div id="modeSelect" class="mode-select">
+        <p class="instructions">What would you like to practice?</p>
+        <div class="mode-buttons">
+          <button class="mode-btn" data-mode="letters">Letters</button>
+          <button class="mode-btn" data-mode="numbers">Numbers</button>
+          <button class="mode-btn" data-mode="mixed">Mixed</button>
+        </div>
       </div>
 
-      <div id="choices" class="choices" aria-live="polite"></div>
+      <!-- Game screen (hidden initially) -->
+      <div id="gameScreen" class="game-screen hidden">
+        <p class="instructions">Listen to the letter or number and pick the matching button. Fun examples will be read too!</p>
 
-      <div id="message" class="message" aria-live="assertive"></div>
+        <div class="controls">
+          <button id="playBtn" class="primary">Play Sound</button>
+          <button id="nextBtn" class="muted">Next</button>
+          <button id="changeModeBtn" class="muted">Change Mode</button>
+        </div>
+
+        <div id="choices" class="choices" aria-live="polite"></div>
+
+        <div id="message" class="message" aria-live="assertive"></div>
+      </div>
     </main>
 
     <script src="script.js"></script>
