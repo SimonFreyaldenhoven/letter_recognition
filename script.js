@@ -44,14 +44,17 @@ function randLetter(){
 
 function createChoices(letter){
   choices.innerHTML = '';
-  const other = (()=>{
-    let pick;
-    do{ pick = randLetter(); } while(pick === letter);
-    return pick;
-  })();
+  // generate 3 unique distractors
+  const distractors = [];
+  while(distractors.length < 3){
+    const pick = randLetter();
+    if(pick !== letter && !distractors.includes(pick)){
+      distractors.push(pick);
+    }
+  }
 
-  // present two buttons in random order
-  const opts = [letter, other].sort(()=>Math.random()-0.5);
+  // present four buttons in random order
+  const opts = [letter, ...distractors].sort(()=>Math.random()-0.5);
 
   opts.forEach(opt => {
     const btn = document.createElement('button');
