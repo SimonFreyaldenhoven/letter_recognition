@@ -135,10 +135,13 @@ function pickVoice(){
   if(_voiceResolved) return _cachedVoice;
   const voices = speechSynthesis.getVoices();
   if(!voices || !voices.length) return null;
-  _cachedVoice = voices.find(v => /Natural/i.test(v.name) && /en/i.test(v.lang))
-    || voices.find(v => /Google UK English Female|Samantha/i.test(v.name))
-    || voices.find(v => /en-US|en-GB/i.test(v.lang))
-    || voices.find(v => /en/i.test(v.lang))
+  // Prefer Aria (Natural, en-US) — clear pronunciation of individual letters
+  _cachedVoice = voices.find(v => /Aria.*Natural/i.test(v.name))
+    || voices.find(v => /Guy.*Natural/i.test(v.name))
+    || voices.find(v => /Natural/i.test(v.name) && /en-US/i.test(v.lang))
+    || voices.find(v => /Natural/i.test(v.name) && /en/i.test(v.lang))
+    || voices.find(v => /Google US English|Samantha/i.test(v.name))
+    || voices.find(v => /en-US/i.test(v.lang))
     || null;
   _voiceResolved = true;
   return _cachedVoice;
@@ -222,8 +225,10 @@ async function playCorrectFeedback(){
   await spawnConfetti();
   // small pause to let the user register the celebration
   await new Promise(r => setTimeout(r, 220));
-  // automatically proceed to the next round (draw two new letters)
+  // automatically proceed to the next round and play the new item
   nextRound();
+  await new Promise(r => setTimeout(r, 500));
+  playItemAudio(currentItem);
 }
 
 function spawnConfetti(){
