@@ -120,18 +120,23 @@ function speak(text, opts={rate:0.85, pitch:1.05, volume:1}){
   u.pitch = (typeof opts.pitch === 'number') ? opts.pitch : 1.05;
   u.volume = (typeof opts.volume === 'number') ? opts.volume : 1;
 
-  // Try to pick a friendly-sounding English voice (prefer named female or en-GB if present)
-  const voices = speechSynthesis.getVoices();
-  if(voices && voices.length){
-    const preferred = voices.find(v => /female|woman|Google UK English Female|Microsoft|Samantha|Alloy/i.test(v.name))
-      || voices.find(v => /en-GB/i.test(v.lang))
-      || voices.find(v => /en-US|en/i.test(v.lang));
-    if(preferred) u.voice = preferred;
-  }
+  u.voice = pickVoice();
 
   // Cancel any ongoing speech to keep playback responsive and predictable
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
+}
+
+// Pick the best available English voice, preferring Natural/Neural voices in Edge.
+function pickVoice(){
+  const voices = speechSynthesis.getVoices();
+  if(!voices || !voices.length) return null;
+  // Prefer Online (Natural) English voices available in Edge
+  return voices.find(v => /Natural/i.test(v.name) && /en/i.test(v.lang))
+    || voices.find(v => /Google UK English Female|Samantha/i.test(v.name))
+    || voices.find(v => /en-US|en-GB/i.test(v.lang))
+    || voices.find(v => /en/i.test(v.lang))
+    || null;
 }
 
 // Async version of speak that returns a Promise which resolves when the utterance ends.
@@ -143,13 +148,7 @@ function speakAsync(text, opts={rate:0.85, pitch:1.05, volume:1}){
     u.rate = opts.rate || 0.85;
     u.pitch = (typeof opts.pitch === 'number') ? opts.pitch : 1.05;
     u.volume = (typeof opts.volume === 'number') ? opts.volume : 1;
-    const voices = speechSynthesis.getVoices();
-    if(voices && voices.length){
-      const preferred = voices.find(v => /female|woman|Google UK English Female|Microsoft|Samantha|Alloy/i.test(v.name))
-        || voices.find(v => /en-GB/i.test(v.lang))
-        || voices.find(v => /en-US|en/i.test(v.lang));
-      if(preferred) u.voice = preferred;
-    }
+    u.voice = pickVoice();
     u.onend = () => resolve();
     u.onerror = () => resolve();
     // do not cancel existing speech so chains can flow naturally
