@@ -128,16 +128,22 @@ function speak(text, opts={rate:0.85, pitch:1.05, volume:1}){
 }
 
 // Pick the best available English voice, preferring Natural/Neural voices in Edge.
+// Caches the result so the same voice is used consistently.
+let _cachedVoice = null;
+let _voiceResolved = false;
 function pickVoice(){
+  if(_voiceResolved) return _cachedVoice;
   const voices = speechSynthesis.getVoices();
   if(!voices || !voices.length) return null;
-  // Prefer Online (Natural) English voices available in Edge
-  return voices.find(v => /Natural/i.test(v.name) && /en/i.test(v.lang))
+  _cachedVoice = voices.find(v => /Natural/i.test(v.name) && /en/i.test(v.lang))
     || voices.find(v => /Google UK English Female|Samantha/i.test(v.name))
     || voices.find(v => /en-US|en-GB/i.test(v.lang))
     || voices.find(v => /en/i.test(v.lang))
     || null;
+  _voiceResolved = true;
+  return _cachedVoice;
 }
+if('speechSynthesis' in window) speechSynthesis.onvoiceschanged = () => { _voiceResolved = false; };
 
 // Async version of speak that returns a Promise which resolves when the utterance ends.
 // Does NOT cancel existing speech by default so it can be used to chain phrases with pauses.
