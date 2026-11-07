@@ -53,11 +53,19 @@ const numbersMap = {
   '20': ['twenty fingers and toes','score','twenty questions']
 };
 
+const lowercaseMap = Object.fromEntries(
+  Object.entries(lettersMap).map(([letter, words]) => [letter.toLowerCase(), words])
+);
+
 // Combined map for easy lookup
-const itemsMap = { ...lettersMap, ...numbersMap };
+const itemsMap = { ...lettersMap, ...lowercaseMap, ...numbersMap };
 
 function isNumber(item) {
   return item in numbersMap;
+}
+
+function isLowercase(item) {
+  return item in lowercaseMap;
 }
 
 const playBtn = document.getElementById('playBtn');
@@ -70,12 +78,14 @@ const gameScreen = document.getElementById('gameScreen');
 const modeButtons = document.querySelectorAll('.mode-btn');
 
 let currentItem = 'A';
-let gameMode = 'mixed'; // 'letters', 'numbers', or 'mixed'
+let gameMode = 'mixed'; // 'letters', 'lowercase', 'numbers', or 'mixed'
 
 function randItem(){
   let pool;
   if (gameMode === 'letters') {
     pool = Object.keys(lettersMap);
+  } else if (gameMode === 'lowercase') {
+    pool = Object.keys(lowercaseMap);
   } else if (gameMode === 'numbers') {
     pool = Object.keys(numbersMap);
   } else {
@@ -88,9 +98,9 @@ function createChoices(item){
   choices.innerHTML = '';
   const itemIsNumber = isNumber(item);
 
-  // generate 3 unique distractors of the same type (letters or numbers)
+  // generate 3 unique distractors of the same type (uppercase, lowercase or numbers)
   const distractors = [];
-  const pool = itemIsNumber ? Object.keys(numbersMap) : Object.keys(lettersMap);
+  const pool = Object.keys(itemIsNumber ? numbersMap : isLowercase(item) ? lowercaseMap : lettersMap);
   while(distractors.length < 3){
     const pick = pool[Math.floor(Math.random() * pool.length)];
     if(pick !== item && !distractors.includes(pick)){
@@ -105,8 +115,8 @@ function createChoices(item){
     const btn = document.createElement('button');
     btn.className = 'choice-btn';
     btn.textContent = opt;
-    const typeLabel = isNumber(opt) ? 'Number' : 'Letter';
-    btn.setAttribute('aria-label', `${typeLabel} ${opt}`);
+    const typeLabel = isNumber(opt) ? 'Number' : isLowercase(opt) ? 'Lowercase letter' : 'Letter';
+    btn.setAttribute('aria-label', `${typeLabel} ${opt.toUpperCase()}`);
     btn.addEventListener('click', ()=>onChoiceClicked(opt, btn));
     choices.appendChild(btn);
   });
@@ -168,7 +178,9 @@ function speakAsync(text, opts={rate:0.85, pitch:1.05, volume:1}){
 async function playItemAudio(item){
   const examples = itemsMap[item] || [];
   const itemIsNumber = isNumber(item);
-  const typeWord = itemIsNumber ? 'number' : 'letter';
+  const typeWord = itemIsNumber ? 'number' : isLowercase(item) ? 'lowercase letter' : 'letter';
+  // Speak lowercase letters as their uppercase form so "a" is read as the letter name, not the word
+  const spokenItem = item.toUpperCase();
 
   // Friendly, paced playback with emphasis on the item.
   // 1) Intro prompt
@@ -182,7 +194,7 @@ async function playItemAudio(item){
   await new Promise(r => setTimeout(r, 420));
 
   // 3) The emphasized item utterance (slower, slightly higher pitch)
-  await speakAsync(item, {rate:0.62, pitch:1.18});
+  await speakAsync(spokenItem, {rate:0.62, pitch:1.18});
 
   // small pause after to give the child time to process
   await new Promise(r => setTimeout(r, 520));
@@ -192,7 +204,7 @@ async function playItemAudio(item){
     const examplesPhrase = `Examples of ${item} are: ${examples.slice(0,3).join(', ')}.`;
     await speakAsync(examplesPhrase, {rate:0.86, pitch:1.03});
   } else {
-    const wordsPhrase = `Words that start with ${item} are: ${examples.slice(0,3).join(', ')}.`;
+    const wordsPhrase = `Words that start with ${spokenItem} are: ${examples.slice(0,3).join(', ')}.`;
     await speakAsync(wordsPhrase, {rate:0.86, pitch:1.03});
   }
 }
