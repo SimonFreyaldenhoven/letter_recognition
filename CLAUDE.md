@@ -35,6 +35,8 @@ Vanilla JavaScript single-page application with no build step or dependencies (G
 - `GROUPS` - letters / lowercase / numbers / sightWords / rhymes. Each group spreads in a round behaviour, `MATCH_ROUNDS` or `RHYME_ROUNDS`, with `choiceCount`, `makeRound(item)`, `introduce(step, round)`, `nudge(step, round, option, btn)` and an optional `confirm(...)`. Items are objects `{ group, text, spoken, example | emoji, family }`: objects, not strings, because "a" and "I" are both letters and sight words, so compare them by identity. `rhymes.items` holds the words that can be asked about; `rhymes.allWords` holds every word.
 - A round is `{ item, answer, options, tiles }`: for match groups `answer === item`; for rhymes `item` is the word to rhyme with and `answer` is another word from its family. Wrong answers come from the item's own group (rhymes: one each from three other families).
 - `STREAK_GOAL` (10) and `STICKERS` (emoji + spoken name) - the streak reward
+- `PRAISE` and `LINES` (`ready`, `tryAgain`, `oops`, `rhyme`) - spoken lines, picked with `freshOf()` so the same line never plays twice in a row
+- `TALK` / `EMPHASIS` / `WORD_VOICE` / `EXCITED` - rate/pitch presets for `step.say`. Keep them close to 1: voices sound robotic when pushed further
 - `MODES` - which groups each mode draws from, plus the on-screen prompt. "mixed" has no fixed groups: they come from the mix picker, are saved in `localStorage` (`letterGame.mix`), and default to `DEFAULT_MIX`.
 
 **Speech (`speech` module):**
@@ -43,6 +45,7 @@ Vanilla JavaScript single-page application with no build step or dependencies (G
 - `step.until(promise)` - wait for something else (e.g. a tap) inside a sequence; still cancellable
 - In game code, use the wrappers `sequence()` / `stopSpeech()`, which also reset the Play button's speaking indicator and clear any spotlight.
 - Each utterance has a timeout fallback because some engines never fire `onend`.
+- `pickVoice()` goes down `VOICE_PREFERENCES`: Edge "Natural" voices (Aria first), then Apple Premium / Enhanced voices (detected via `voiceURI`, Ava/Zoe/Samantha first), then Google US English / Samantha, then any English voice. Apple's novelty voices (Bubbles, Zarvox, …) are never used.
 
 **Game loop:**
 - `newRound()` → `drawItem()` picks one of `state.groups` uniformly at random (so the big rhyme group doesn't dominate a mix), then draws from that group's shuffled deck: each item once per cycle, never the same item or rhyme family twice in a row. `startRound(item)` builds the round via `group.makeRound`, and `renderRound` draws it.
@@ -55,4 +58,4 @@ Vanilla JavaScript single-page application with no build step or dependencies (G
 
 ## Browser Requirements
 
-Requires Web Speech API (`speechSynthesis`). Works best in Chrome or Edge (prefers Edge's "Aria Natural" voice). Running via localhost may be needed for speech to work in some browsers. A notice is shown if speech is unavailable.
+Requires Web Speech API (`speechSynthesis`). Works best in Edge ("Aria Natural" voice) or on iPad/Mac Safari with a downloaded Premium voice. Published via GitHub Pages from `main` at https://simonfreyaldenhoven.github.io/letter_recognition/. Running via localhost may be needed for speech to work in some browsers. A notice is shown if speech is unavailable.

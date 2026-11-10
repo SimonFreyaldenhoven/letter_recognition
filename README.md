@@ -26,4 +26,6 @@ How the game works
 
 Notes / Requirements
 - A modern browser with speechSynthesis support is recommended. If speech does not play, try Chrome or Edge and/or run via a local server. Edge's "Aria (Natural)" voice is used when available.
+- Play online (e.g. on an iPad): https://simonfreyaldenhoven.github.io/letter_recognition/ — in Safari, Share → Add to Home Screen.
+- For a much more natural voice on iPad, download a Premium voice once: Settings → Accessibility → Read & Speak (Spoken Content on older iPadOS) → Voices → English → Ava or Zoe → Premium. The game picks it up automatically.
 - Fonts (Fredoka, and Andika for the letters — designed for beginning readers) load from Google Fonts; offline, the game falls back to system fonts.

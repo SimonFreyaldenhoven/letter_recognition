@@ -193,8 +193,12 @@ const RHYME_FAMILIES = [
 // A round is { item, answer, options, tiles }: `item` is what the game asks
 // about, `answer` is the option that is correct, `options` are shown as tiles.
 
-const EMPHASIS = { rate: 0.62, pitch: 1.18 }; // the item being asked about
-const WORD_VOICE = { rate: 0.8, pitch: 1.1 }; // a word read out while its tile lights up
+// How the voice sounds. Voices turn robotic when speed or pitch are pushed far
+// from 1, so these stay close to it; only the item being asked about is slow.
+const TALK = { rate: 0.92, pitch: 1.05 }; // everyday sentences
+const EMPHASIS = { rate: 0.7, pitch: 1.1 }; // the item being asked about
+const WORD_VOICE = { rate: 0.85, pitch: 1.05 }; // a word read out while its tile lights up
+const EXCITED = { rate: 1, pitch: 1.12 }; // praise
 
 // Letters, numbers and sight words: the game names an item and the child taps
 // the tile showing it. Wrong answers come from the item's own group, so a
@@ -210,22 +214,22 @@ const MATCH_ROUNDS = {
   // "Okay, listen closely. This is the letter ... B. Words that start with B are ..."
   async introduce(step, { item }) {
     setSpeaking(true);
-    await step.say('Okay, listen closely.', { rate: 0.82 });
+    await step.say(freshOf(LINES.ready), TALK);
     await step.pause(350);
     // Lead-in without the item, so we can pause for emphasis before it.
-    await step.say(`This is the ${this.word}`, { rate: 0.82 });
+    await step.say(`This is the ${this.word}`, TALK);
     await step.pause(420);
     await step.say(item.spoken, EMPHASIS);
     await step.pause(520);
-    await step.say(item.example, { rate: 0.86, pitch: 1.03 });
+    await step.say(item.example, TALK);
     setSpeaking(false);
   },
 
   // Gentle nudge, then repeat the target so the child knows what to look for.
   async nudge(step, { item }) {
-    await step.say('Not quite. Try again!', { rate: 0.86 });
+    await step.say(freshOf(LINES.tryAgain), TALK);
     await step.pause(250);
-    await step.say(`Find the ${this.word}`, { rate: 0.82 });
+    await step.say(`Find the ${this.word}`, TALK);
     await step.pause(300);
     await step.say(item.spoken, EMPHASIS);
   },
@@ -250,9 +254,9 @@ const RHYME_ROUNDS = {
 
   async introduce(step, { item, options, tiles }) {
     setSpeaking(true);
-    await step.say('Okay, listen closely.', { rate: 0.82 });
+    await step.say(freshOf(LINES.ready), TALK);
     await step.pause(300);
-    await step.say('Which picture rhymes with', { rate: 0.82 });
+    await step.say('Which picture rhymes with', TALK);
     await step.pause(250);
     await sayLit(step, els.rhymeTarget, item.spoken, EMPHASIS);
     await step.pause(350);
@@ -261,25 +265,25 @@ const RHYME_ROUNDS = {
       await step.pause(150);
     }
     await step.pause(250);
-    await step.say('Which one rhymes with', { rate: 0.82 });
+    await step.say('Which one rhymes with', TALK);
     await sayLit(step, els.rhymeTarget, item.spoken, EMPHASIS);
     setSpeaking(false);
   },
 
-  // "Not quite. Dog ... cat ... Those don't rhyme. Try again!"
+  // "Oops! Dog ... cat ... Those don't rhyme. Try again!"
   async nudge(step, { item }, option, btn) {
-    await step.say('Not quite.', { rate: 0.86 });
+    await step.say(freshOf(LINES.oops), TALK);
     await step.pause(150);
     await sayLit(step, btn, option.spoken, WORD_VOICE);
     await sayLit(step, els.rhymeTarget, item.spoken, WORD_VOICE);
-    await step.say("Those don't rhyme. Try again!", { rate: 0.86 });
+    await step.say("Those don't rhyme. Try again!", TALK);
   },
 
   // After the praise: "Cat ... hat ... They rhyme!"
   async confirm(step, { item, answer }, btn) {
     await sayLit(step, els.rhymeTarget, item.spoken, WORD_VOICE);
     await sayLit(step, btn, answer.spoken, WORD_VOICE);
-    await step.say('They rhyme!', { rate: 0.9, pitch: 1.12 });
+    await step.say(freshOf(LINES.rhyme), EXCITED);
   },
 };
 
@@ -350,6 +354,8 @@ const STICKERS = [
   ['🐙', 'octopus'], ['🦜', 'parrot'], ['🦩', 'flamingo'], ['🍦', 'ice cream'],
 ];
 
+// Spoken lines are picked at random with freshOf() (never the same one twice
+// in a row) so the game doesn't sound like a recording on repeat.
 const PRAISE = [
   "That's right! Great job!",
   'You got it!',
@@ -357,7 +363,38 @@ const PRAISE = [
   'Yes! Well done!',
   'Super!',
   'Fantastic!',
+  'Hooray! You did it!',
+  "Woo-hoo! That's it!",
+  'High five!',
+  "You're a superstar!",
+  'Way to go!',
+  'Nailed it!',
+  'Yippee! Great job!',
+  'Amazing!',
 ];
+
+const LINES = {
+  // Before each new question.
+  ready: [
+    'Okay, listen closely.',
+    'Ready? Here comes the next one!',
+    "Ooh, here's a fun one!",
+    'Listen carefully!',
+    "Let's see if you can find this one!",
+    'Here we go!',
+  ],
+  // After a wrong tap; followed by "Find the letter ... B".
+  tryAgain: [
+    'Not quite. Try again!',
+    'Oops, not that one! Try again.',
+    "Good try! Let's try again.",
+    'Almost! Have another go.',
+  ],
+  // After a wrong tap in rhymes; followed by "dog ... cat ... Those don't rhyme."
+  oops: ['Not quite.', 'Oops!', 'Good try!'],
+  // After "cat ... hat ...".
+  rhyme: ['They rhyme!', 'Yes, they rhyme!', 'They sound the same at the end. They rhyme!'],
+};
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -365,6 +402,15 @@ const PRAISE = [
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 const randomOf = list => list[Math.floor(Math.random() * list.length)];
+
+// Like randomOf, but never the same pick from a list twice in a row.
+const lastPicked = new Map();
+function freshOf(list) {
+  let pick;
+  do pick = randomOf(list); while (list.length > 1 && pick === lastPicked.get(list));
+  lastPicked.set(list, pick);
+  return pick;
+}
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 // Unbiased Fisher-Yates shuffle (returns a new array).
@@ -397,24 +443,44 @@ const speech = (() => {
   // fire `onend`. Holding a reference until it finishes prevents that.
   const inFlight = new Set();
 
-  // Pick the best English voice (Natural/Neural voices in Edge first) and keep
-  // using it so the voice doesn't change between phrases.
+  // Pick the best English voice and keep using it so the voice doesn't change
+  // between phrases. Edge's online "Natural" voices and Apple's Premium /
+  // Enhanced voices (free downloads in iPad/Mac settings) sound far more
+  // natural than the built-in ones. Apple identifies those in the voiceURI
+  // (e.g. "com.apple.voice.premium.en-US.Ava"), so check that too.
+  const NOVELTY_VOICES = /^(Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox)\b/i;
+  const id = v => `${v.name} ${v.voiceURI}`;
+  const us = v => /^en[-_]US/i.test(v.lang);
+  const FAVOURITE_APPLE = /^(Ava|Zoe|Samantha)\b/i;
+  const VOICE_PREFERENCES = [ // best first
+    v => /Aria.*Natural/i.test(v.name),
+    v => /Guy.*Natural/i.test(v.name),
+    v => /Natural/i.test(v.name) && us(v),
+    v => /Natural/i.test(v.name),
+    v => /premium/i.test(id(v)) && FAVOURITE_APPLE.test(v.name) && us(v),
+    v => /premium/i.test(id(v)) && us(v),
+    v => /enhanced/i.test(id(v)) && FAVOURITE_APPLE.test(v.name) && us(v),
+    v => /enhanced/i.test(id(v)) && us(v),
+    v => /premium|enhanced/i.test(id(v)),
+    v => /Google US English|Samantha/i.test(v.name),
+    v => us(v),
+    () => true,
+  ];
   let cachedVoice = null;
   let voiceResolved = false;
   function pickVoice() {
     if (voiceResolved) return cachedVoice;
     const voices = synth.getVoices();
     if (!voices.length) return null;
-    cachedVoice = voices.find(v => /Aria.*Natural/i.test(v.name))
-      || voices.find(v => /Guy.*Natural/i.test(v.name))
-      || voices.find(v => /Natural/i.test(v.name) && /^en[-_]US/i.test(v.lang))
-      || voices.find(v => /Natural/i.test(v.name) && /^en/i.test(v.lang))
-      || voices.find(v => /Google US English|Samantha/i.test(v.name))
-      || voices.find(v => /^en[-_]US/i.test(v.lang))
-      || voices.find(v => /^en/i.test(v.lang))
-      || null;
+    // Novelty voices (Apple ships several) are fun but too hard to understand.
+    const english = voices.filter(v => /^en/i.test(v.lang) && !NOVELTY_VOICES.test(v.name));
+    cachedVoice = null;
+    for (const prefer of VOICE_PREFERENCES) {
+      cachedVoice = english.find(prefer);
+      if (cachedVoice) break;
+    }
     voiceResolved = true;
-    return cachedVoice;
+    return cachedVoice || null;
   }
 
   if (supported) {
@@ -854,7 +920,7 @@ async function celebrate(btn) {
   state.locked = true;
   for (const tile of round.tiles) tile.disabled = true;
   btn.classList.add('correct');
-  const praise = randomOf(PRAISE);
+  const praise = freshOf(PRAISE);
   showMessage(`${praise} 🎉`, 'good');
   sfx.correct();
   bounce(btn);
@@ -866,7 +932,7 @@ async function celebrate(btn) {
   // so the game doesn't carry on talking in the background.
   await sequence(async step => {
     await Promise.all([
-      step.say(praise, { rate: 0.9, pitch: 1.15 }),
+      step.say(praise, EXCITED),
       step.pause(1600), // let the confetti finish
     ]);
     if (group.confirm) await group.confirm(step, round, btn);
@@ -1057,8 +1123,8 @@ async function giveReward(step) {
   setTimeout(() => confettiFrom(els.rewardSticker), 300);
   setTimeout(() => confettiFrom(els.rewardSticker), 1100);
 
-  await step.say('Wow! Ten in a row!', { rate: 0.9, pitch: 1.2 });
-  await step.say(won, { rate: 0.88, pitch: 1.15 });
+  await step.say('Wow! Ten in a row!', EXCITED);
+  await step.say(won, EXCITED);
   els.rewardBtn.disabled = false;
   els.rewardBtn.focus();
   await step.until(new Promise(resolve => els.rewardBtn.addEventListener('click', resolve, { once: true })));
