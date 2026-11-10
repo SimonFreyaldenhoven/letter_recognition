@@ -2,40 +2,129 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Letter & Number Recognition — Game</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#fffaf3" />
+    <title>Letter &amp; Number Game</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔤</text></svg>" />
+    <!-- Fonts are optional: without a network connection the game falls back to system fonts. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&display=swap" />
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main class="container">
-      <h1>Letter & Number Game</h1>
+    <main class="app">
+      <h1 class="title">Letter &amp; Number Game</h1>
+
+      <p id="noSpeech" class="notice" hidden>
+        This browser can't talk, so the game will be silent. Please try Chrome or Edge.
+      </p>
 
       <!-- Mode selection screen -->
-      <div id="modeSelect" class="mode-select">
-        <p class="instructions">What would you like to practice?</p>
-        <div class="mode-buttons">
-          <button class="mode-btn" data-mode="letters">Letters ABC</button>
-          <button class="mode-btn" data-mode="lowercase">Letters abc</button>
-          <button class="mode-btn" data-mode="numbers">Numbers</button>
-          <button class="mode-btn" data-mode="mixed">Mixed</button>
+      <section id="modeSelect" class="screen" aria-labelledby="modePrompt">
+        <p id="modePrompt" class="prompt">What do you want to practice?</p>
+        <div class="mode-grid">
+          <button type="button" class="mode-card chunky tone-coral" data-mode="letters">
+            <span class="mode-glyph">ABC</span>
+            <span class="mode-label">Big letters</span>
+          </button>
+          <button type="button" class="mode-card chunky tone-blue" data-mode="lowercase">
+            <span class="mode-glyph">abc</span>
+            <span class="mode-label">Small letters</span>
+          </button>
+          <button type="button" class="mode-card chunky tone-green" data-mode="numbers">
+            <span class="mode-glyph">123</span>
+            <span class="mode-label">Numbers</span>
+          </button>
+          <button type="button" class="mode-card chunky tone-pink" data-mode="sightWords">
+            <span class="mode-glyph">the</span>
+            <span class="mode-label">Sight words</span>
+          </button>
+          <button type="button" class="mode-card chunky tone-orange" data-mode="rhymes">
+            <span class="mode-glyph emoji" aria-hidden="true">🐱🎩</span>
+            <span class="mode-label">Rhymes</span>
+          </button>
+          <button type="button" class="mode-card chunky tone-purple" data-mode="mixed">
+            <span class="mode-glyph">Ab3</span>
+            <span class="mode-label">Mix it up</span>
+          </button>
         </div>
-      </div>
 
-      <!-- Game screen (hidden initially) -->
-      <div id="gameScreen" class="game-screen hidden">
-        <p class="instructions">Listen to the letter or number and pick the matching button. Fun examples will be read too!</p>
+        <section class="sticker-shelf" aria-labelledby="shelfTitle">
+          <h2 id="shelfTitle" class="shelf-title">My stickers</h2>
+          <p id="shelfEmpty" class="shelf-empty">Get 10 right in a row to win a sticker!</p>
+          <div id="shelfList" class="shelf-list"></div>
+        </section>
+      </section>
 
-        <div class="controls">
-          <button id="playBtn" class="primary">Play Sound</button>
-          <button id="nextBtn" class="muted">Next</button>
-          <button id="changeModeBtn" class="muted">Change Mode</button>
+      <!-- Mix screen: pick what "Mix it up" draws from -->
+      <section id="mixSelect" class="screen" hidden aria-labelledby="mixPrompt">
+        <p id="mixPrompt" class="prompt">What should we mix together?</p>
+        <div class="mix-grid">
+          <button type="button" class="mix-option chunky tone-coral" data-group="letters" aria-pressed="false">
+            <span class="mode-glyph">ABC</span>
+            <span class="mode-label">Big letters</span>
+          </button>
+          <button type="button" class="mix-option chunky tone-blue" data-group="lowercase" aria-pressed="false">
+            <span class="mode-glyph">abc</span>
+            <span class="mode-label">Small letters</span>
+          </button>
+          <button type="button" class="mix-option chunky tone-green" data-group="numbers" aria-pressed="false">
+            <span class="mode-glyph">123</span>
+            <span class="mode-label">Numbers</span>
+          </button>
+          <button type="button" class="mix-option chunky tone-pink" data-group="sightWords" aria-pressed="false">
+            <span class="mode-glyph">the</span>
+            <span class="mode-label">Sight words</span>
+          </button>
+          <button type="button" class="mix-option chunky tone-orange" data-group="rhymes" aria-pressed="false">
+            <span class="mode-glyph emoji" aria-hidden="true">🐱🎩</span>
+            <span class="mode-label">Rhymes</span>
+          </button>
+        </div>
+        <p id="mixHint" class="mix-hint" hidden>Pick at least one.</p>
+        <div class="mix-actions">
+          <button type="button" id="mixBackBtn" class="pill-btn">← Back</button>
+          <button type="button" id="mixStartBtn" class="start-btn chunky">Start</button>
+        </div>
+      </section>
+
+      <!-- Game screen (hidden until a mode is picked) -->
+      <section id="gameScreen" class="screen" hidden>
+        <div class="topbar">
+          <button type="button" id="changeModeBtn" class="pill-btn">← Change mode</button>
+          <button type="button" id="nextBtn" class="pill-btn">Next →</button>
         </div>
 
-        <div id="choices" class="choices" aria-live="polite"></div>
+        <!-- Streak meter: a star per right answer in a row (sidebar on wide screens, row on small ones) -->
+        <div id="streak" class="streak" role="img"></div>
 
-        <div id="message" class="message" aria-live="assertive"></div>
-      </div>
+        <p id="instructions" class="prompt">Listen, then tap the matching letter!</p>
+
+        <button type="button" id="playBtn" class="play-btn chunky">
+          <span class="play-icon" aria-hidden="true">🔊</span>
+          <span>Play sound</span>
+        </button>
+
+        <!-- In rhyme rounds: the word to rhyme with -->
+        <div id="rhymeTarget" class="rhyme-target" hidden></div>
+
+        <div id="choices" class="choices"></div>
+
+        <p id="message" class="message" role="status" aria-live="polite"></p>
+      </section>
     </main>
+
+    <!-- Reward for 10 right answers in a row -->
+    <div id="reward" class="reward" role="dialog" aria-modal="true" aria-labelledby="rewardTitle" hidden>
+      <div id="rewardCard" class="reward-card">
+        <div class="reward-rays" aria-hidden="true"></div>
+        <div id="rewardSticker" class="reward-sticker" aria-hidden="true"></div>
+        <h2 id="rewardTitle" class="reward-title">10 in a row!</h2>
+        <p id="rewardText" class="reward-text"></p>
+        <button type="button" id="rewardBtn" class="reward-btn chunky" aria-label="Keep playing">▶</button>
+      </div>
+    </div>
 
     <script src="script.js"></script>
   </body>
